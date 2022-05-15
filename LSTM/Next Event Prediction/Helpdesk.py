@@ -338,3 +338,23 @@ plt.show()
 # save model to single file
 model.save('LSTM_Helpdesk.h5')
 
+#Make prediction on X_test to predict next activity. - Use Y-test as performance evaluation? 
+yhat = model.predict(X_test, verbose=2)
+yhat
+
+# Converting predictions to dataframe
+# Give column names
+colName = ['Assign seriousness', 'Closed', 'Create SW anomaly', 'DUPLICATE', 'END',
+       'INVALID', 'Insert ticket', 'RESOLVED', 'Require upgrade',
+       'Resolve SW anomaly', 'Resolve ticket', 'Schedule intervention',
+       'Take in charge ticket', 'VERIFIED', 'Wait']
+
+dfObj = pd.DataFrame(yhat*100, columns = colName)
+Seq_Series=event_log_test.X_test.apply(pd.Series) # Constructs series of the X column of the XY table
+dfObj.reset_index(drop=True, inplace=True)
+Seq_Series.reset_index(drop=True, inplace=True)
+df_new = pd.concat([Seq_Series, dfObj], axis=1)
+df_new
+
+# Save this matrix to csv
+df_new.to_csv(path_or_buf= "Predictions_HelpDesk.csv", index=True)
