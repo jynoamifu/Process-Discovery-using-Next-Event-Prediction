@@ -25,8 +25,7 @@ def get_timestamp_for_OOT_split(log, fraction):
   place = int(len(log)*fraction)
   return(log[place][0]['time:timestamp'])
 
-#Noami and Julia: I recommend you use remove_overlap = True
-#Chen, Charilaos, Tove I recommend you use remove_overlap = False
+
 def OOT_split(log_location, fraction, remove_overlap): 
   #returns train and test log for an out-of-time split
   #fraction = fraction of traces in the training log
@@ -49,57 +48,6 @@ def OOT_split(log_location, fraction, remove_overlap):
   return(train_log, test_log)
 
 
-def random_split(log_location, fraction): 
-  #returns train and test log where the traces are split randomly
-  #fraction = fraction of traces in the training log
-  variant = xes_importer.Variants.ITERPARSE
-  parameters = {variant.value.Parameters.TIMESTAMP_SORT: True}
-  log = xes_importer.apply(log_location, variant=variant, parameters=parameters)
-  place = int(len(log)*fraction)
-  print(place)
-  indices = np.random.permutation(len(log))
-  train_idx, test_idx = indices[:place], indices[place:]
-  train_log = [log[i] for i in train_idx]
-  test_log = [log[i] for i in test_idx]
-  train_log = EventLog(train_log)
-  test_log = EventLog(test_log)
-  return train_log, test_log
-
-def k_fold_split_random(log_location, k): 
-  #returns two lists of length k: the training and test logs
-  #we split the log randomly into k folds
-  #the test log is each time one of these folds
-  #the corresponding training log is then the rest of the log
-  variant = xes_importer.Variants.ITERPARSE
-  parameters = {variant.value.Parameters.TIMESTAMP_SORT: True}
-  log = xes_importer.apply(log_location, variant=variant, parameters=parameters)
-  print(len(log))
-  #define sizes of folds
-  foldsize = math.floor(len(log)/k)
-  places = []
-  places.append(0)
-  for i in range(0, k):
-    place = (i+1)*foldsize
-    places.append(place)
-  #fix these last traces not included   
-  left = int(len(log) - foldsize*k)
-  for l in range(1, left):
-    places[l] = places[l] + l
-  for k in range(left, len(places)):
-    places[k] = places[k] + left
-  print(places)    
-  indices = np.random.permutation(len(log))
-  train_logs = []
-  test_logs = []
-  for j in range(0, k):
-    tr = [log[i] for i in train_idx]
-    te = [log[i] for i in test_idx]
-    train_log = EventLog(tr)
-    test_log = EventLog(te)
-    train_logs.append(train_log)
-    test_logs.append(test_log)
-  return(train_logs, test_logs)
-
 def import_and_save_OOT_split(log_location, fraction, remove_overlap, namelog):
   tr, te = OOT_split(log_location, fraction, remove_overlap)
   trainname = namelog + "Train_OOT"+".xes"
@@ -107,27 +55,13 @@ def import_and_save_OOT_split(log_location, fraction, remove_overlap, namelog):
   xes_exporter.apply(tr, trainname)
   xes_exporter.apply(te, testname)
 
-def import_and_save_random_split(log_location, fraction, remove_overlap, namelog):
-  tr, te = random_split(log_location, fraction)
-  trainname = namelog + "Train_Random"+".xes"
-  testname = namelog + "Test_Random"+".xes"
-  xes_exporter.apply(tr, trainname)
-  xes_exporter.apply(te, testname)
 
-def import_and_save_k_fold(log_location, k, namelog):
-  tr, te = k_fold_split_random(log_location, k)
-  for i in range(0, k):
-    trainname = namelog + "Train_"+ str(k)+ "fold_" + str(i+1)+".xes"
-    testname = namelog + "Test_"+ str(k)+ "fold_" + str(i+1)+".xes"
-    xes_exporter.apply(tr[i], trainname)
-    xes_exporter.apply(te[i], testname)
-
-"""# ** Helpdesk data**"""
+"""# **Example using Helpdesk data**"""
 
 from google.colab import files
 upload = files.upload()
 
-log_csv = pd.read_csv("HelpDesk_Online.csv")
+log_csv = pd.read_csv("HelpDesk.csv")
 log_csv
 
 log_csv = pm4py.format_dataframe(log_csv, case_id='Case ID', activity_key='Activity', timestamp_key='Complete Timestamp')
