@@ -363,4 +363,4 @@ Seq_Series.reset_index(drop=True, inplace=True)
 predictions = pd.concat([Seq_Series, dfObj], axis=1)
 predictions
 
-predictions.to_csv(path_or_buf = "Predictions_BPIC2012_prefixlen20.csv", index = True)
+predictions.to_csv(path_or_buf = "Predictions_BPIC2012.csv", index = True)
